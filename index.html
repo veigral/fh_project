@@ -80,7 +80,7 @@
       <a href="#strawberries"><img width="24px" src="img/strawberries__icon.svg"> Клубника в шоколаде</a>
       <a href="#bouquets"><span>💐</span> Сладкие букеты</a>
       <a href="#macarons"><img width="32px" src="img/macaron-svgrepo-com.svg"> Макарон</a>
-      <a href="#dates"><img id="dates__img" src="img/b_создай_svg_иконку_ка.png"> Королевские финики</a>
+      <a href="#dates"><img id="dates__img" src="img/dates.png"> Королевские финики</a>
     </div>
   </div>
 
@@ -94,6 +94,7 @@
         <div class="divider"></div>
       </div>
       <div class="grid stagger" data-grid="strawberry"></div>
+      <button class="show-more-btn" type="button" data-show-more="strawberry" aria-expanded="false">Показать ещё</button>
     </div>
   </section>
 
@@ -107,6 +108,7 @@
         <div class="divider"></div>
       </div>
       <div class="grid stagger" data-grid="bouquet"></div>
+      <button class="show-more-btn" type="button" data-show-more="bouquet" aria-expanded="false">Показать ещё</button>
     </div>
   </section>
 
@@ -120,6 +122,7 @@
         <div class="divider"></div>
       </div>
       <div class="grid stagger" data-grid="macaron"></div>
+      <button class="show-more-btn" type="button" data-show-more="macaron" aria-expanded="false">Показать ещё</button>
     </div>
   </section>
 
@@ -133,6 +136,7 @@
         <div class="divider"></div>
       </div>
       <div class="grid stagger" data-grid="date"></div>
+      <button class="show-more-btn" type="button" data-show-more="date" aria-expanded="false">Показать ещё</button>
     </div>
   </section>
 
@@ -238,7 +242,6 @@
             <li><a href="#about">О студии</a></li>
             <li>Доставка и оплата</li>
             <li>Условия хранения</li>
-            
           </ul>
         </div>
         <div>
@@ -263,7 +266,7 @@
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-head">
       <h3>Ваша корзина</h3>
-      <button class="close-btn" id="closeCart">✕</button>
+      <button class="close-btn" id="closeCart" type="button" aria-label="Закрыть корзину">✕</button>
     </div>
     <div class="cart-items" id="cartItems"></div>
     <div class="cart-foot">
@@ -272,11 +275,32 @@
     </div>
   </div>
 
+  <!-- ================= PRODUCT MODAL ================= -->
+  <div class="modal product-modal" id="productModal" role="dialog" aria-modal="true" aria-labelledby="productModalTitle" aria-describedby="productModalDescription" aria-hidden="true">
+    <div class="modal-box product-modal-box" role="document">
+      <button class="close-btn modal-close" id="closeProductModal" type="button" aria-label="Закрыть описание товара">✕</button>
+      <div class="product-modal-image">
+        <img id="productModalImage" src="" alt="" loading="lazy">
+      </div>
+      <div class="product-modal-content">
+        <span class="sec-eyebrow" id="productModalCategory"></span>
+        <h3 id="productModalTitle"></h3>
+        <p class="product-modal-description" id="productModalDescription"></p>
+        <div class="product-modal-meta">
+          <strong id="productModalPrice"></strong>
+          <span id="productModalTag"></span>
+        </div>
+        <div id="productModalAction" class="product-modal-action"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= CHECKOUT MODAL ================= -->
-  <div class="modal" id="checkoutModal">
+  <div class="modal" id="checkoutModal" role="dialog" aria-modal="true" aria-labelledby="checkoutModalTitle" aria-hidden="true">
     <div class="modal-box">
       <div id="formView">
-        <h3>Оформление заказа</h3>
+        <button class="close-btn checkout-close" id="closeCheckout" type="button" aria-label="Закрыть оформление заказа">✕</button>
+        <h3 id="checkoutModalTitle">Оформление заказа</h3>
         <p class="sub">Заполните данные, и мы свяжемся с вами для подтверждения.</p>
 
         <div class="method-toggle">
@@ -297,12 +321,12 @@
             <label>Адрес доставки *</label>
             <input type="text" id="custAddress" placeholder="Улица, дом, квартира">
           </div>
-          <div class="form-row" style="display:flex;gap:12px;">
-            <div style="flex:1;">
+          <div class="form-row form-row-inline">
+            <div class="form-field-grow">
               <label>Дата</label>
               <input type="date" id="custDate">
             </div>
-            <div style="flex:1;">
+            <div class="form-field-grow">
               <label>Время</label>
               <input type="time" id="custTime">
             </div>
@@ -330,7 +354,7 @@
 
   <div class="toast" id="toast">✅ Товар добавлен в корзину</div>
 
-  <script defer src="js/script.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 
 </html>
