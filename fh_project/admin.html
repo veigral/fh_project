@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/admin.css">
+    <title>Fruit House — Заказы</title>
+</head>
+
+<body>
+    <main>
+        <section id="loginView">
+            <h1>Вход в Fruit House</h1>
+
+            <form id="loginForm">
+                <div>
+                    <label for="adminUsername">Логин</label>
+
+                    <input type="text" id="adminUsername" autocomplete="username" required>
+                </div>
+
+                <div>
+                    <label for="adminPassword">Пароль</label>
+
+                    <input type="password" id="adminPassword" autocomplete="current-password" required>
+                </div>
+
+                <button type="submit">
+                    Войти
+                </button>
+
+                <p id="loginError"></p>
+            </form>
+        </section>
+
+        <section id="adminPanel" hidden>
+            <h1>Заказы Fruit House</h1>
+            <button type="button" id="logoutButton">
+                Выйти
+            </button>
+
+            <div class="order-filters">
+                <button type="button" data-status="" class="active">
+                    Все (<span id="count-all">0</span>)
+                </button>
+
+                <button type="button" data-status="new">
+                    Новые (<span id="count-new">0</span>)
+                </button>
+
+                <button type="button" data-status="processing">
+                    В работе (<span id="count-processing">0</span>)
+                </button>
+
+                <button type="button" data-status="completed">
+                    Выполненные (<span id="count-completed">0</span>)
+                </button>
+
+                <button type="button" data-status="cancelled">
+                    Отменённые (<span id="count-cancelled">0</span>)
+                </button>
+            </div>
+
+            <div id="orders">
+                Загрузка заказов...
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="./js/admin.js"></script>
+</body>
+
+</html>
