@@ -8,7 +8,8 @@
     "start": "node dist/server.js",
     "seed": "ts-node-dev --transpile-only src/seed.ts",
     "create-admin": "ts-node --transpile-only src/createAdmin.ts",
-    "change-admin-password": "ts-node --transpile-only src/changeAdminPassword.ts"
+    "change-admin-password": "ts-node --transpile-only src/changeAdminPassword.ts",
+    "fix-categories": "ts-node --transpile-only src/fixCategories.ts"
   },
   "keywords": [],
   "author": "",

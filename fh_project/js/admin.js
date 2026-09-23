@@ -4,6 +4,11 @@ const loginForm = document.querySelector('#loginForm');
 const loginError = document.querySelector('#loginError');
 const logoutButton = document.querySelector('#logoutButton');
 const ordersContainer = document.querySelector('#orders');
+const ordersView = document.querySelector('#ordersView');
+const productsView = document.querySelector('#productsView');
+const adminTabs = document.querySelector('.admin-tabs');
+const adminProducts = document.querySelector('#adminProducts');
+let adminProductsData = [];
 
 let currentStatus = '';
 
@@ -92,6 +97,481 @@ loginForm.addEventListener('submit', (event) => {
         .value;
 
     login(username, password);
+});
+
+async function loadAdminProducts() {
+    try {
+        const response = await fetch(
+            'http://localhost:3000/api/products/admin',
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        if (response.status === 401) {
+            logout();
+
+            loginError.textContent =
+                'Сессия истекла. Войдите снова.';
+
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                `Ошибка сервера: ${response.status}`
+            );
+        }
+
+        const products = await response.json();
+        adminProductsData = products;
+
+        renderAdminProducts(products);
+    } catch (error) {
+        console.error(
+            'Ошибка загрузки товаров:',
+            error
+        );
+
+        adminProducts.innerHTML = `
+      <p>Не удалось загрузить товары.</p>
+    `;
+    }
+}
+
+function renderAdminProducts(products) {
+    if (products.length === 0) {
+        adminProducts.innerHTML = `
+      <p>Товаров пока нет.</p>
+    `;
+
+        return;
+    }
+
+    adminProducts.innerHTML = products
+        .map((product) => {
+            const availability = product.is_available
+                ? 'Доступен'
+                : 'Скрыт';
+
+            return `
+        <article class="admin-product">
+          <img
+            src="${product.image}"
+            alt="${product.name}"
+            class="admin-product-image"
+          >
+
+          <div class="admin-product-info">
+            <div class="admin-product-name">
+              <small>${product.category_name}</small>
+
+              <h3>${product.name}</h3>
+            </div>
+
+            <strong>
+              ${product.price} ₽
+            </strong>
+
+            <div class="admin-product-actions">
+                <span
+                    class="admin-product-status ${product.is_available
+                    ? 'is-available'
+                    : 'is-hidden'
+                }"
+                >
+                    ${availability}
+                </span>
+
+                <button
+                    type="button"
+                    class="product-availability-button"
+                    data-product-id="${product.id}"
+                    data-is-available="${product.is_available}"
+                >
+                    ${product.is_available
+                    ? 'Скрыть'
+                    : 'Вернуть в каталог'
+                }
+                </button>
+                <button
+                    type="button"
+                    class="product-edit-button"
+                    data-product-id="${product.id}"
+                    >
+                    Редактировать
+                </button>
+            </div>
+
+            <div
+                id="product-edit-${product.id}"
+                class="product-edit-form"
+                hidden
+            ></div>
+
+          </div>
+        </article>
+      `;
+        })
+        .join('');
+}
+
+function openProductEditForm(product) {
+    const container = document.querySelector(
+        `#product-edit-${product.id}`
+    );
+
+    if (!container) return;
+
+    if (!container.hidden) {
+        container.hidden = true;
+        container.innerHTML = '';
+
+        return;
+    }
+
+    container.innerHTML = `
+    <div class="product-edit-fields">
+      <label>
+        Название
+        <input
+          type="text"
+          class="product-edit-name"
+          value="${product.name}"
+        >
+      </label>
+
+        <label>
+            Категория
+
+            <select class="product-edit-category">
+                <option
+                value="strawberry"
+                ${product.category === 'strawberry' ? 'selected' : ''}
+                >
+                Клубника в шоколаде
+                </option>
+
+                <option
+                value="bouquet"
+                ${product.category === 'bouquet' ? 'selected' : ''}
+                >
+                Сладкие букеты
+                </option>
+
+                <option
+                value="macaron"
+                ${product.category === 'macaron' ? 'selected' : ''}
+                >
+                Макарон
+                </option>
+
+                <option
+                value="date"
+                ${product.category === 'date' ? 'selected' : ''}
+                >
+                Королевские финики
+                </option>
+            </select>
+        </label>
+
+      <label>
+        Краткое описание
+        <textarea
+          class="product-edit-description"
+        >${product.description}</textarea>
+      </label>
+
+      <label>
+        Подробное описание
+        <textarea
+          class="product-edit-details"
+        >${product.details}</textarea>
+      </label>
+
+      <label>
+        Цена
+        <input
+          type="number"
+          min="0"
+          step="1"
+          class="product-edit-price"
+          value="${product.price}"
+        >
+      </label>
+
+      <label>
+        Тег
+        <input
+          type="text"
+          class="product-edit-tag"
+          value="${product.tag || ''}"
+        >
+      </label>
+    </div>
+
+    <div class="product-edit-actions">
+      <button
+        type="button"
+        class="product-save-button"
+        data-product-id="${product.id}"
+      >
+        Сохранить
+      </button>
+
+      <button
+        type="button"
+        class="product-cancel-button"
+        data-product-id="${product.id}"
+      >
+        Отмена
+      </button>
+    </div>
+  `;
+
+    container.hidden = false;
+}
+
+async function updateProductAvailability(
+    productId,
+    isAvailable
+) {
+    try {
+        const response = await fetch(
+            `http://localhost:3000/api/products/${productId}/availability`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    isAvailable,
+                }),
+            }
+        );
+
+        if (response.status === 401) {
+            logout();
+
+            loginError.textContent =
+                'Сессия истекла. Войдите снова.';
+
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message ||
+                'Не удалось изменить доступность товара'
+            );
+        }
+
+        loadAdminProducts();
+    } catch (error) {
+        console.error(
+            'Ошибка изменения доступности товара:',
+            error
+        );
+
+        alert(error.message);
+    }
+}
+
+async function saveProductChanges(productId) {
+    const container = document.querySelector(
+        `#product-edit-${productId}`
+    );
+
+    if (!container) return;
+
+    const name = container
+        .querySelector('.product-edit-name')
+        .value
+        .trim();
+
+    const category = container
+        .querySelector('.product-edit-category')
+        .value;
+
+    const description = container
+        .querySelector('.product-edit-description')
+        .value
+        .trim();
+
+    const details = container
+        .querySelector('.product-edit-details')
+        .value
+        .trim();
+
+    const price = Number(
+        container.querySelector('.product-edit-price').value
+    );
+
+    const tag = container
+        .querySelector('.product-edit-tag')
+        .value
+        .trim();
+
+    if (!name) {
+        alert('Укажите название товара');
+        return;
+    }
+
+    if (!Number.isInteger(price) || price < 0) {
+        alert('Укажите корректную цену');
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `http://localhost:3000/api/products/${productId}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    name,
+                    category,
+                    description,
+                    details,
+                    price,
+                    tag: tag || null,
+                }),
+            }
+        );
+
+        if (response.status === 401) {
+            logout();
+
+            loginError.textContent =
+                'Сессия истекла. Войдите снова.';
+
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message || 'Не удалось обновить товар'
+            );
+        }
+
+        await loadAdminProducts();
+    } catch (error) {
+        console.error(
+            'Ошибка обновления товара:',
+            error
+        );
+
+        alert(error.message);
+    }
+}
+
+adminProducts.addEventListener('click', (event) => {
+    const availabilityButton = event.target.closest(
+        '.product-availability-button'
+    );
+
+    if (availabilityButton) {
+        const productId =
+            availabilityButton.dataset.productId;
+
+        const isCurrentlyAvailable =
+            availabilityButton.dataset.isAvailable === 'true';
+
+        updateProductAvailability(
+            productId,
+            !isCurrentlyAvailable
+        );
+
+        return;
+    }
+
+    const editButton = event.target.closest(
+        '.product-edit-button'
+    );
+
+    if (editButton) {
+        const productId =
+            editButton.dataset.productId;
+
+        const product = adminProductsData.find(
+            (item) => item.id === productId
+        );
+
+        if (product) {
+            openProductEditForm(product);
+        }
+
+        return;
+    }
+
+    const saveButton = event.target.closest(
+        '.product-save-button'
+    );
+
+    if (saveButton) {
+        const productId = saveButton.dataset.productId;
+
+        saveProductChanges(productId);
+
+        return;
+    }
+
+    const cancelButton = event.target.closest(
+        '.product-cancel-button'
+    );
+
+    if (cancelButton) {
+        const productId = cancelButton.dataset.productId;
+
+        const container = document.querySelector(
+            `#product-edit-${productId}`
+        );
+
+        if (container) {
+            container.hidden = true;
+            container.innerHTML = '';
+        }
+
+        return;
+    }
+});
+
+adminTabs.addEventListener('click', (event) => {
+    const button = event.target.closest('.admin-tab');
+
+    if (!button) return;
+
+    adminTabs
+        .querySelectorAll('.admin-tab')
+        .forEach((tab) => {
+            tab.classList.remove('active');
+        });
+
+    button.classList.add('active');
+
+    const tab = button.dataset.tab;
+
+    if (tab === 'products') {
+        ordersView.hidden = true;
+        productsView.hidden = false;
+
+        loadAdminProducts();
+
+        return;
+    }
+
+    productsView.hidden = true;
+    ordersView.hidden = false;
 });
 
 async function loadOrders(status = '') {
@@ -411,8 +891,8 @@ async function loadOrderDetails(orderId) {
                 <span>Получение</span>
                 <strong>
                 ${order.delivery_method === 'pickup'
-                    ? 'Самовывоз'
-                    : 'Доставка'}
+                ? 'Самовывоз'
+                : 'Доставка'}
                 </strong>
             </div>
 
